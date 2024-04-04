@@ -1,0 +1,8 @@
+.env
+.vscode
+.python-version
+chat.log
+pychat
+*.pkl
+error.log
+__pycache__
