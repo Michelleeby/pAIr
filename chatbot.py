@@ -103,7 +103,7 @@ class ChatBotClass:
             System message in predefined format.
         """
         content = get_multi_line_input()
-        system_message = {"role": "system", "content": content}
+        system_message = {"role": "system", "content": content, "tokens": self.count_tokens(content)}
 
         # Add system message to the list of messages
         self.all_messages.append(system_message)
@@ -141,7 +141,7 @@ class ChatBotClass:
         # Create a copy of all_messages without the 'tokens' property
         messages_to_send = [{"role": m["role"], "content": m["content"]} for m in self.all_messages]
 
-        model_name = os.getenv('MODEL_NAME', 'gpt-4')
+        model_name = os.getenv('GPT_MODEL_NAME', 'gpt-4')
         response = client.chat.completions.create(model=model_name, messages=messages_to_send)
 
         generated_text = response.choices[0].message.content
