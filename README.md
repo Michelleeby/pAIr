@@ -101,7 +101,7 @@ training_data_path = os.getenv("TRAINING_DATA_PATH", "chat.log")
 pat_str = os.getenv("PAT_STR", r"""('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))""")
 ```
 
-Have fun and adjust the pattern string `pat_string` to match your data format.
+Have fun, adjust the pattern string `pat_string` to match your data format, and remember this is a silly feature with a regex pattern in the end 😂
 
 ### Configuration
 
