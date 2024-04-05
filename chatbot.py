@@ -13,6 +13,11 @@ from helpers import setup_logger, get_multi_line_input
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# Constants
+TOKEN_MAX_LIMIT_SET = 4096
+TOKEN_MAX_LIMIT_BUFFER = 96
+TOKEN_MAX_LIMIT = TOKEN_MAX_LIMIT_SET - TOKEN_MAX_LIMIT_BUFFER
+
 # Load environment vars
 load_dotenv()
 
@@ -126,8 +131,8 @@ class ChatBotClass:
         new_message_content = {"role": "user", "content": user_message, "tokens": self.count_tokens(user_message)}
         total_tokens = sum([m['tokens'] for m in self.all_messages])
 
-        if total_tokens + new_message_content['tokens'] > 4000:  # Let's save some space for the model's output
-            while total_tokens + new_message_content['tokens'] > 4000 and len(self.all_messages) > 0:
+        if total_tokens + new_message_content['tokens'] > TOKEN_MAX_LIMIT:  # Let's save some space for the model's output
+            while total_tokens + new_message_content['tokens'] > TOKEN_MAX_LIMIT and len(self.all_messages) > 0:
                 removed_message = self.all_messages.pop(0)
                 total_tokens -= removed_message['tokens']
 
@@ -168,21 +173,16 @@ class ChatBotClass:
     
     def chat_main_process(self):
         """Main chatbot interaction loop."""
-        try:
-            client = self.setup_openai_api_client()
-            print("Start chatting (type 'quit' to stop, press 'ctrl-d' to send)\n")
-
-            while True:
-                try:
-                    user_message = self.handle_user_messages()
-                    if user_message is None:
-                        continue
-                    elif user_message.lower() == 'quit':
-                        break
-                    response = self.chatbot_interaction(client, user_message)
-                    print(">> ", response)
-                except Exception as e:
-                    error_logger.error(f'An error occurred: {e}\n{traceback.format_exc()}')
-        except Exception as e:
-            error_logger.error(f'An error occurred: {e}\n{traceback.format_exc()}')
-            raise
+        client = self.setup_openai_api_client()
+        print("Start chatting (type 'quit' to stop, press 'ctrl-d' to send)\n")
+        while True:
+            try:
+                user_message = self.handle_user_messages()
+                if user_message is None:
+                    continue
+                elif user_message.lower() == 'quit':
+                    break
+                response = self.chatbot_interaction(client, user_message)
+                print(">> ", response)
+            except Exception as e:
+                error_logger.error(f'An error occurred: {e}\n{traceback.format_exc()}')

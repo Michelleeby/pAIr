@@ -2,7 +2,8 @@
 .vscode
 .python-version
 chat.log
-pychat
-*.pkl
+chat.sample.log
 error.log
 __pycache__
+pair
+*.pkl
