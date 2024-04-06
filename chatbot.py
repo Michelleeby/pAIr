@@ -61,10 +61,36 @@ class ChatBotClass:
         """
         if not os.path.exists(model_path):
             if training_data is None or vocab_size is None or pat_str is None:
-                raise ValueError("Training data, vocab size, and pattern string are required to train a new model")
+                msg = "Training data, vocab size, and pattern string are required to train a new model"
+                error_logger.error(msg)
+                raise ValueError(msg)
             tokenizer = Tokenizer.train(training_data, vocab_size, pat_str)
+
+            test_data = [
+                'Hello, how are you?', 
+                'I am fine, thank you.', 
+                'Goodbye!',
+                """
+                ```python
+                    def test():
+                        print('Hello, world!')
+                ```
+                """,
+                "What's the deal with apostrophes?"
+            ]
+
+            if tokenizer.validate(test_data):
+                msg = "Tokenizer validation failed. See tokenizer error logs for more information."
+                error_logger.error(msg)
+                raise ValueError(msg)
+            
             tokenizer.save_model(model_path)
 
+        if not os.path.exists(model_path):
+            msg = "Model file not found. Please check the path and try again."
+            error_logger.error(msg)
+            raise FileNotFoundError(msg)
+        
         with open(model_path, 'rb') as f:
             self.tokenizer = pickle.load(f)
 
