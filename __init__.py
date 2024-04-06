@@ -33,6 +33,7 @@ def create_chatbot():
 
 def main():
     chatbot = create_chatbot()
+    chatbot.set_system_message_default()
     chatbot.chat_main_process()
 
 if __name__ == "__main__":

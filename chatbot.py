@@ -10,7 +10,7 @@ from collections import deque
 
 # Local application imports
 from SimpleBytePairEncoding import Tokenizer
-from helpers import setup_logger, get_multi_line_input
+from helpers import setup_logger, get_multi_line_input, colorize_code_blocks
 
 # Related third party imports
 from dotenv import load_dotenv
@@ -194,7 +194,7 @@ class ChatBotClass:
             Number of tokens in the new message.
         """
         total_tokens = self.calculate_total_tokens()
-        while total_tokens + new_message_tokens > TOKEN_MAX_LIMIT and len(self.all_messages) > 0:
+        while total_tokens + new_message_tokens > TOKEN_MAX_LIMIT and len(self.all_messages) > 1:
             removed_message = self.all_messages.popleft() # See https://en.wikipedia.org/wiki/Double-ended_queue
             total_tokens -= removed_message['tokens']
         return total_tokens
@@ -244,11 +244,20 @@ class ChatBotClass:
 
         generated_text = self.get_response(client, messages_to_send)
         self.all_messages.append({"role": "system", "content": generated_text, "tokens": self.count_tokens(generated_text)})
-        
         self.log_message(user_message, generated_text)
         
-        return generated_text
+        return colorize_code_blocks(generated_text)
      
+    def set_system_message_default(self):
+        """
+        Set a default system message.
+        """
+        default_message = "You are a helpful assistant and you ALWAYS enclose code in Markdown code blocks and define the language you are using next to the opening code block backticks."
+        set_default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', default_message)
+        system_message = {"role": "system", "content": set_default_message, "tokens": self.count_tokens(set_default_message)}
+        self.all_messages.append(system_message)
+        return system_message
+    
     def set_system_message(self):
         """
         Set system message using multiline input entered by the user.
