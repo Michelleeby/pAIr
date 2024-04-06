@@ -90,18 +90,18 @@ System message set to:
 
 ### Train Tokenizer
 
-You can train the tokenizer with your own chat logs. On init without a chatlog file given the code will default to training from "Hello world!" string. If you have data you want to train the tokenizer with, set the TRAINING_DATA_PATH environment variable to the path of the file. Its assumed the data is something like a chat log with alternating messages and markdown code blocks. To change the model file you load, set the MODEL_PATH environment variable to the path of the model file.
+You can train the tokenizer with your own chat logs.
+
+Without a `chat.log` file on the os or without another trained model file defined, the code will default to training from the `sample-training-data.log` file [provided in this repository](https://github.com/Michelleeby/pAIr/blob/4f4dd9779891d7e86eac40f99c4955800709f027/sample-training-data.log). If you have other data you want to train the tokenizer with, set the `TRAINING_DATA_PATH` environment variable to the path of the file. Its assumed the data is something like a chat log with alternating messages and markdown code blocks. To change the model file you load (or save to), set the `MODEL_PATH` environment variable to the path of the model file. If your data is not in the format of alternating messages and code blocks, you can change the pattern string used to tokenize the data by setting the `PAT_STR` environment variable.
 
 For more info take a look at [__init__.py](https://github.com/Michelleeby/pAIr/blob/0ec83de1af0845f58f829b77c328c9253b6af9ff/__init__.py#L10-L13):
 
 ```python
 # Defaults
 model_path = os.getenv("MODEL_PATH", "pair.pkl")
-training_data_path = os.getenv("TRAINING_DATA_PATH", "chat.log")
+training_data_path = os.getenv("TRAINING_DATA_PATH", "sample-training-data.log")
 pat_str = os.getenv("PAT_STR", r"""('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))""")
 ```
-
-Have fun, adjust the pattern string `pat_string` to match your data format, and remember this is a silly feature with a regex pattern in the end 😂
 
 ### Configuration
 
