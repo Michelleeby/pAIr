@@ -33,14 +33,15 @@ error_logger = setup_logger('error_logger', 'error.log', logging.ERROR)
 # --- Main class ---
 class ChatBotClass:
     """
-    A bot for interactive chatting, given a path to a trained model.
+    A bot for interactive chatting in terminal.
 
     Attributes
     ----------
     tokenizer : object
         The tokenizer loaded from the trained model.
-    all_messages : list
-        List storing all messages in the conversation.
+
+    all_messages : deque
+        A double-ended queue to store all messages in the conversation.
     """
 
     # -- Constructor --
@@ -51,50 +52,110 @@ class ChatBotClass:
         Parameters
         ----------
         model_path : str
-            Path to the trained model file.
+            Path to the trained tokenizer model file.
+
         training_data : str, optional
-            The data to be used for training the model. Required if the model file does not exist.
+            The data to be used for training the tokenizer model. Required if the model file does not exist.
+
         vocab_size : int, optional
             The maximum size of the vocabulary. Required if the model file does not exist.
+
         pat_str : str, optional
             A pattern string. Required if the model file does not exist.
         """
-        if not os.path.exists(model_path):
-            if training_data is None or vocab_size is None or pat_str is None:
-                msg = "Training data, vocab size, and pattern string are required to train a new model"
-                error_logger.error(msg)
-                raise ValueError(msg)
-            tokenizer = Tokenizer.train(training_data, vocab_size, pat_str)
+        self.model_path = model_path
+        self.train_data = training_data
+        self.vocab_size = vocab_size
+        self.pat_str = pat_str
+        
+        self.all_messages = deque() # See https://docs.python.org/3/library/collections.html#collections.deque
 
-            test_data = [
-                'Hello, how are you?', 
-                'I am fine, thank you.', 
-                'Goodbye!',
-                """
-                ```python
-                    def test():
-                        print('Hello, world!')
-                ```
-                """,
-                "What's the deal with apostrophes?"
-            ]
+        if not os.path.exists(self.model_path):
+            self.__check_model_arguments()
+            self.__train_model()
 
-            if tokenizer.validate(test_data):
-                msg = "Tokenizer validation failed. See tokenizer error logs for more information."
-                error_logger.error(msg)
-                raise ValueError(msg)
-            
-            tokenizer.save_model(model_path)
+        self.__load_model()
 
-        if not os.path.exists(model_path):
+    # -- Tokenizer model related methods --
+
+    def __check_model_arguments(self):
+        """
+        Check if the required arguments are provided to train a new model.
+        
+        Raises
+        -------
+        ValueError
+            If training data, vocab size, or pattern string is not provided.
+        """
+        if self.train_data is None or self.vocab_size is None or self.pat_str is None:
+            msg = "Training data, vocab size, and pattern string are required to train a new model"
+            error_logger.error(msg)
+            raise ValueError(msg)
+
+    def __train_model(self):
+        """
+        Train a new tokenizer model and save it to the specified path.
+
+        Raises
+        -------
+        ValueError
+            If the tokenizer validation fails.
+        """
+        tokenizer = Tokenizer.train(self.train_data, self.vocab_size, self.pat_str)
+
+        test_data = self.get_test_data()
+
+        if not tokenizer.validate(test_data):
+            msg = "Tokenizer validation failed. See tokenizer error logs for more information."
+            error_logger.error(msg)
+            raise ValueError(msg)
+        
+        tokenizer.save_model(self.model_path)
+
+    def __load_model(self):
+        """
+        Load the tokenizer model from the specified path.
+
+        Raises
+        -------
+        FileNotFoundError
+            If the model file is not found.
+        """
+        if not os.path.exists(self.model_path):
             msg = "Model file not found. Please check the path and try again."
             error_logger.error(msg)
             raise FileNotFoundError(msg)
-        
-        with open(model_path, 'rb') as f:
+
+        with open(self.model_path, 'rb') as f:
             self.tokenizer = pickle.load(f)
 
-        self.all_messages = deque() # See https://docs.python.org/3/library/collections.html#collections.deque
+    @staticmethod
+    def get_test_data():
+        """
+        Get test data for tokenizer validation.
+
+        Returns
+        -------
+        list
+            List of test data strings.
+        """
+        return [
+                'Hello there! Can you assist me with my code?',
+                'Absolutely! Could you please share your code with me?',
+                'Sure, here it is: \n"""python\ndef hello():\n print("Hello, World!")\nhello()\n"""',
+                "I see. Is there a specific part of the code you're having trouble with?",
+                'I am actually not sure what this code does.',
+                "This code defines a function called `hello` that prints \"Hello, World!\" when called. The last line `hello()` calls the function.",
+                'Makes sense, thank you!',
+                'You\'re welcome! Let me know if you have any other questions.',
+                "Sure, I've another question. What is the difference between a list and a tuple in Python?",
+                "A list is mutable, meaning you can change its content. Lists are defined by having values between square brackets [], On the other hand, a tuple is immutable and cannot be changed. Tuples are written with round brackets (). ",
+                "Understood, thank you for explaining!",
+                "No problem at all! Don't hesitate to ask if you have more questions in the future. ",
+                "Sure thing! I'll reach out if I need more help.",
+                "Perfect! Have a great day!",
+                "Decoding error: Unsupported character in string."
+            ]
 
     # -- Token related methods --
 
