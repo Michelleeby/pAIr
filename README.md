@@ -12,6 +12,7 @@ Simple pair programming/chat assistant CLI tool powered by openAI (defaults to "
 - Chat with "gpt4" without leaving the terminal
 - Set the system prompt during the conversation
 - Train the tokenizer with your own chat logs
+- syntax highlighting for returned code snippets in markdown code blocks
 
 ## Installation
 
