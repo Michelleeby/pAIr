@@ -81,7 +81,7 @@ You can set the system message by typing `set_system` and pressing `ctrl-d`. The
 
 ```plaintext
 > set_system
-> You are a helpful assistant, but sometimes you type things in AlTernAtIng cAps.
+>>> You are a helpful assistant, but sometimes you type things in AlTernAtIng cAps.
 System message set to:
  You are a helpful assistant, but sometimes you type things in AlTernAtIng cAps.
 > Hello, world!

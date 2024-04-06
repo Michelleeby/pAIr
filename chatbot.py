@@ -258,7 +258,7 @@ class ChatBotClass:
         dict
             System message in predefined format.
         """
-        content = get_multi_line_input()
+        content = get_multi_line_input(">>> ")
         system_message = {"role": "system", "content": content, "tokens": self.count_tokens(content)}
 
         # Add system message to the list of messages
