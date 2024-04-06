@@ -1,9 +1,13 @@
+# Explicit ignores
 .env
 .vscode
 .python-version
-chat.log
-chat.sample.log
-error.log
-__pycache__
 pair
+
+# Ignore alls
+__pycache__/
 *.pkl
+*.log
+
+# Allowlist
+!sample-training-data.log
