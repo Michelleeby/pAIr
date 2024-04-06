@@ -1,6 +1,6 @@
 # pAIr
 
-Simple pair programming/chat assistant CLI tool powered by openAI (default model, "gpt-4").
+Simple pair programming/chat assistant CLI tool powered by openAI (defaults to "gpt-4" model).
 
 ## Requirements
 
