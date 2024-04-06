@@ -9,7 +9,7 @@ def create_chatbot():
 
     # Defaults
     model_path = os.getenv("MODEL_PATH", "pair.pkl")
-    training_data_path = os.getenv("TRAINING_DATA_PATH", "chat.log")
+    training_data_path = os.getenv("TRAINING_DATA_PATH", "sample-training-data.log")
     pat_str = os.getenv("PAT_STR", r"""('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))""")
 
     if not os.path.exists(model_path):
