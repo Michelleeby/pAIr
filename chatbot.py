@@ -10,11 +10,13 @@ from collections import deque
 
 # Local application imports
 from SimpleBytePairEncoding import Tokenizer
-from helpers import setup_logger, get_multi_line_input, colorize_code_blocks
+from helpers import setup_logger, get_multi_line_input
 
 # Related third party imports
 from dotenv import load_dotenv
 from openai import OpenAI
+from rich import print
+from rich.markdown import Markdown
 
 # --- Setup ---
 
@@ -246,13 +248,13 @@ class ChatBotClass:
         self.all_messages.append({"role": "system", "content": generated_text, "tokens": self.count_tokens(generated_text)})
         self.log_message(user_message, generated_text)
         
-        return colorize_code_blocks(generated_text)
+        return Markdown(generated_text)
      
     def set_system_message_default(self):
         """
         Set a default system message.
         """
-        default_message = "You are a helpful assistant and you ALWAYS enclose code in Markdown code blocks and define the language you are using next to the opening code block backticks."
+        default_message = "You are a helpful assistant. You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, and italics. You ALWAYS specify the language of a code block. You NEVER consider Markdown formatted text to be code."
         set_default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', default_message)
         system_message = {"role": "system", "content": set_default_message, "tokens": self.count_tokens(set_default_message)}
         self.all_messages.append(system_message)
