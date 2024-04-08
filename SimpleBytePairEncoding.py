@@ -2,7 +2,9 @@
 
 # Standard library imports
 import collections
+from typing import Optional
 import logging
+import os
 
 # Third party imports
 import regex
@@ -176,7 +178,137 @@ class Tokenizer:
 
         return Tokenizer(pat_str=pat_str, mergeable_ranks=mergeable_ranks)
 
-# --- Byte Pair Encoding functions ---
+# --- Tokenizer service class ---
+
+class TokenizerService:
+    """
+    A service class for the Tokenizer.
+
+    Attributes
+    ----------
+    model_path : str
+        Path to the trained tokenizer model file.
+
+    train_data : str
+        The data to be used for training the tokenizer model.
+
+    vocab_size : int
+        The maximum size of the vocabulary.
+
+    pat_str : str
+        A pattern string used to split the input data into words.
+
+    tokenizer : Tokenizer
+        The trained tokenizer instance.
+    """
+
+    # -- Constructor --
+            
+    def __init__(self, model_path: str, training_data: Optional[str] = None, vocab_size: Optional[int] = None, pat_str: Optional[str] = None):
+        self.model_path = model_path
+        self.train_data = training_data
+        self.vocab_size = vocab_size
+        self.pat_str = pat_str
+        self.tokenizer = None
+
+        if not os.path.exists(self.model_path):
+            self.__check_model_arguments()
+            self.__train_model()
+
+        self.__load_model()
+
+        if self.tokenizer is None:
+            msg = "Tokenizer could not be loaded. Please see the logs for more information."
+            error_logger.error(msg)
+            raise FileNotFoundError(msg)
+        
+    # -- Tokenizer service utilities --
+
+    def __check_model_arguments(self):
+        """
+        Check if the required arguments are provided to train a new model.
+        
+        Raises
+        -------
+        ValueError
+            If training data, vocab size, or pattern string is not provided.
+        """
+        if self.train_data is None or self.vocab_size is None or self.pat_str is None:
+            msg = "Training data, vocab size, and pattern string are required to train a new model"
+            error_logger.error(msg)
+            raise ValueError(msg)
+
+    def __train_model(self):
+        """
+        Train a new tokenizer model and save it to the specified path.
+
+        Raises
+        -------
+        ValueError
+            If the tokenizer validation fails.
+        """
+        tokenizer = Tokenizer.train(self.train_data, self.vocab_size, self.pat_str)
+
+        test_data = self.get_test_data()
+
+        if tokenizer.validate(test_data):
+            msg = "Tokenizer validation failed. See tokenizer error logs for more information."
+            error_logger.error(msg)
+            raise ValueError(msg)
+        
+        tokenizer.save_model(self.model_path)
+
+    def __load_model(self):
+        """
+        Load the tokenizer model from the specified path.
+
+        Raises
+        -------
+        FileNotFoundError
+            If the model file is not found.
+        """
+        if not os.path.exists(self.model_path):
+            msg = "Model file not found. Please check the path and try again."
+            error_logger.error(msg)
+            raise FileNotFoundError(msg)
+        
+        with open(self.model_path, 'rb') as f:
+            self.tokenizer = pickle.load(f)
+
+        if self.tokenizer.validate(self.get_test_data()): # If any validation errors are returned, raise an error
+            msg = "Tokenizer validation failed. See tokenizer error logs for more information."
+            error_logger.error(msg)
+            raise ValueError(msg)
+
+    @staticmethod
+    def get_test_data():
+        """
+        Get test data for tokenizer validation.
+
+        Returns
+        -------
+        list
+            List of test data strings.
+        """
+        return [
+                'Hello there! Can you assist me with my code?',
+                'Absolutely! Could you please share your code with me?',
+                'Sure, here it is: \n"""python\ndef hello():\n print("Hello, World!")\nhello()\n"""',
+                "I see. Is there a specific part of the code you're having trouble with?",
+                'I am actually not sure what this code does.',
+                "This code defines a function called `hello` that prints \"Hello, World!\" when called. The last line `hello()` calls the function.",
+                'Makes sense, thank you!',
+                'You\'re welcome! Let me know if you have any other questions.',
+                "Sure, I've another question. What is the difference between a list and a tuple in Python?",
+                "A list is mutable, meaning you can change its content. Lists are defined by having values between square brackets [], On the other hand, a tuple is immutable and cannot be changed. Tuples are written with round brackets (). ",
+                "Understood, thank you for explaining!",
+                "No problem at all! Don't hesitate to ask if you have more questions in the future. ",
+                "Sure thing! I'll reach out if I need more help.",
+                "Perfect! Have a great day!",
+                "Decoding error: Unsupported character in string."
+            ]
+
+# --- Helper functions ---
 
 def bpe_encode(mergeable_ranks: dict[bytes, int], input: bytes) -> list[int]:
     """
