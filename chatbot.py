@@ -107,7 +107,7 @@ class ChatBotClass:
 
         test_data = self.get_test_data()
 
-        if not tokenizer.validate(test_data):
+        if tokenizer.validate(test_data):
             msg = "Tokenizer validation failed. See tokenizer error logs for more information."
             error_logger.error(msg)
             raise ValueError(msg)
