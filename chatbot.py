@@ -213,7 +213,16 @@ class ChatBotClass:
         dict
             System message in predefined format.
         """
+        append = False if input("Do you want to append to the current system message? (y/n): ").lower() == 'n' else True
+        print("Enter the system message (press 'ctrl-d' to send):")
         content = get_multi_line_input(">>> ")
+        
+        if not content:
+            return self.set_system_message_default()
+        
+        if append:
+            content = f'{self.all_messages[-1]["content"]}\n\n{content}'
+
         system_message = {"role": "system", "content": content, "tokens": self.count_tokens(content)}
 
         # Add system message to the list of messages
