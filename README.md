@@ -145,6 +145,8 @@ You are a helpful assistant.
 
 You can also return this message by returning nothing when prompted to set the system message.
 
+This default prompt is largely inspired by [these promtps](https://gist.github.com/alexandreteles/8aa56ec416b7fe2fc1ee0a687995925a).
+
 ### Train the tokenizer
 
 You can train the tokenizer with your own chat logs (or any other data).
