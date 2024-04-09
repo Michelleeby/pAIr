@@ -22,7 +22,8 @@ from rich.markdown import Markdown
 # Set constants
 TOKEN_MAX_LIMIT = 4096
 
-DEFAULT_SYSTEM_MESSAGE = """You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
+DEFAULT_SYSTEM_MESSAGE = """
+You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
 Knowledge cutoff: 2023-04
 Current date: 2024-04-09
 
