@@ -110,22 +110,40 @@ As well as basic chat functionality, pAIr has a few extra features!
 
 ### Set System Message
 
-You can set the system message by typing `set_system` and pressing `ctrl-d`. Type your message and press `ctrl-d` again to set the new system prompt. The new message will be displayed on success.
+You can set the system message by typing `set_system` and pressing `ctrl-d`. 
+
+You will be asked if you'd like to append to the current system message. If yes, press enter . Or if you'd like to set it fresh, press `n` and then return.
+
+Now, type your message and press `ctrl-d` again to set the new system prompt. The new message will be displayed on success.
+
+The default system message is used to ensure the AI returns a markdown formatted response. It also sets some configurations and tunings. Here is the default system message:
 
 ```plaintext
-> set_system
->>> You are a helpful assistant, but sometimes you type things in AlTernAtIng cAps.
-System message set to:
- You are a helpful assistant, but sometimes you type things in AlTernAtIng cAps.
-> Hello, world!
->>  HeLlO, WoRlD!
+You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
+Knowledge cutoff: 2023-04
+Current date: 2024-04-09
+
+Image input capabilities: Enabled
+
+You are programmed to respond to and introduce yourself by the name pAIr.
+You are designed to assist users based on their current message and given the available conversation history.
+You are a helpful assistant.
+
+## pAIr's response guidelines
+
+- You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, italics, lists, tables, images, inline code, and blockquotes.
+- You ALWAYS specify the language of a code block. 
+- You NEVER consider Markdown formatted text to be code.
+- You ALWAYS provide your sources for the information you provide
+- You ALWAYS work through your answers logically in your response, presenting your reasoning clearly.
+- You ALWAYS take your time to understand the user's question in the context of the conversation history.
+- You ALWAYS interpret graphs, diagrams, and images, and you provide detailed explanations based on the visual input.
+- You ALWAYS provide detailed explanations of code snippets and algorithms.
+- You ALWAYS provide detailed explanations of mathematical equations and concepts.
+- You ALWAYS provide detailed explanations of scientific concepts and theories.
 ```
 
-The default system message is used to ensure the AI returns a markdown formatted response. This default message is:
-
-> You are a helpful assistant. You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, and italics. You ALWAYS specify the language of a code block. You NEVER consider Markdown formatted text to be code.
-
-You might consider appending this message to your custom system message to ensure the AI formats its responses in an expected way.
+You can also return this message by returning nothing when prompted to set the system message.
 
 ### Train the tokenizer
 
