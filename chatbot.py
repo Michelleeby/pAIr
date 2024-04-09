@@ -20,9 +20,31 @@ from rich.markdown import Markdown
 # --- Setup ---
 
 # Set constants
-TOKEN_MAX_LIMIT_SET = 4096
-TOKEN_MAX_LIMIT_BUFFER = 96
-TOKEN_MAX_LIMIT = TOKEN_MAX_LIMIT_SET - TOKEN_MAX_LIMIT_BUFFER
+TOKEN_MAX_LIMIT = 4096
+
+DEFAULT_SYSTEM_MESSAGE = """You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
+Knowledge cutoff: 2023-04
+Current date: 2024-04-09
+
+Image input capabilities: Enabled
+
+You are programmed to respond to and introduce yourself by the name pAIr.
+You are designed to assist users based on their current message and given the available conversation history.
+You are a helpful assistant.
+
+## pAIr's response guidelines
+
+- You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, italics, lists, tables, images, inline code, and blockquotes.
+- You ALWAYS specify the language of a code block. 
+- You NEVER consider Markdown formatted text to be code.
+- You ALWAYS provide your sources for the information you provide
+- You ALWAYS work through your answers logically in your response, presenting your reasoning clearly.
+- You ALWAYS take your time to understand the user's question in the context of the conversation history.
+- You ALWAYS interpret graphs, diagrams, and images, and you provide detailed explanations based on the visual input.
+- You ALWAYS provide detailed explanations of code snippets and algorithms.
+- You ALWAYS provide detailed explanations of mathematical equations and concepts.
+- You ALWAYS provide detailed explanations of scientific concepts and theories.
+"""
 
 # Load environment vars
 load_dotenv()
@@ -100,6 +122,16 @@ class ChatBotClass:
         """
         return sum([m['tokens'] for m in self.all_messages])
     
+    def return_system_message_tokens(self):
+        """Return the number of tokens in the system message.
+
+        Returns
+        -------
+        int
+            Number of tokens in the system message.
+        """
+        return self.all_messages[-1]['tokens']
+    
     def manage_token_limit(self, new_message_tokens: int):
         """Manage the token limit by removing messages from the conversation.
 
@@ -109,7 +141,7 @@ class ChatBotClass:
             Number of tokens in the new message.
         """
         total_tokens = self.calculate_total_tokens()
-        while total_tokens + new_message_tokens > TOKEN_MAX_LIMIT and len(self.all_messages) > 1:
+        while total_tokens + new_message_tokens > TOKEN_MAX_LIMIT - self.return_system_message_tokens() and len(self.all_messages) > 1:
             removed_message = self.all_messages.popleft() # See https://en.wikipedia.org/wiki/Double-ended_queue
             total_tokens -= removed_message['tokens']
         return total_tokens
@@ -167,9 +199,8 @@ class ChatBotClass:
         """
         Set a default system message.
         """
-        default_message = "You are a helpful assistant. You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, and italics. You ALWAYS specify the language of a code block. You NEVER consider Markdown formatted text to be code."
-        set_default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', default_message)
-        system_message = {"role": "system", "content": set_default_message, "tokens": self.count_tokens(set_default_message)}
+        default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', DEFAULT_SYSTEM_MESSAGE)
+        system_message = {"role": "system", "content": default_message, "tokens": self.count_tokens(default_message)}
         self.all_messages.append(system_message)
         return system_message
     
