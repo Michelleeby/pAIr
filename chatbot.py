@@ -4,6 +4,7 @@
 import os
 import traceback
 import logging
+import datetime
 from typing import Optional
 from collections import deque
 
@@ -20,32 +21,7 @@ from rich.markdown import Markdown
 # --- Setup ---
 
 # Set constants
-TOKEN_MAX_LIMIT = 4096
-
-DEFAULT_SYSTEM_MESSAGE = """
-You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
-Knowledge cutoff: 2023-04
-Current date: 2024-04-09
-
-Image input capabilities: Enabled
-
-You are programmed to respond to and introduce yourself by the name pAIr.
-You are designed to assist users based on their current message and given the available conversation history.
-You are a helpful assistant.
-
-## Your response guidelines
-
-- You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, italics, lists, tables, images, inline code, and blockquotes.
-- You ALWAYS specify the language of a code block. 
-- You NEVER consider Markdown formatted text to be code.
-- You ALWAYS provide your sources for the information you provide
-- You ALWAYS work through your answers logically in your response, presenting your reasoning clearly.
-- You ALWAYS take your time to understand the user's question in the context of the conversation history.
-- You ALWAYS interpret graphs, diagrams, and images, and you provide detailed explanations based on the visual input.
-- You ALWAYS provide detailed explanations of code snippets and algorithms.
-- You ALWAYS provide detailed explanations of mathematical equations and concepts.
-- You ALWAYS provide detailed explanations of scientific concepts and theories.
-"""
+TOKEN_MAX_LIMIT = 128000
 
 # Load environment vars
 load_dotenv()
@@ -200,7 +176,7 @@ class ChatBotClass:
         """
         Set a default system message.
         """
-        default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', DEFAULT_SYSTEM_MESSAGE)
+        default_message = os.getenv('DEFAULT_SYSTEM_MESSAGE', self.default_system_message())
         system_message = {"role": "system", "content": default_message, "tokens": self.count_tokens(default_message)}
         self.all_messages.append(system_message)
         return system_message
@@ -214,7 +190,7 @@ class ChatBotClass:
         dict
             System message in predefined format.
         """
-        append = False if input("Do you want to append to the current system message? (y/n): ").lower() == 'n' else True
+        append = False if input(f"Do you want to append to the current system message?\n{self.all_messages[-1]}\n(y/n): ").lower() == 'n' else True
         print("Enter the system message (press 'ctrl-d' to send):")
         content = get_multi_line_input(">>> ")
         
@@ -279,6 +255,45 @@ class ChatBotClass:
         response = client.chat.completions.create(model=os.getenv('GPT_MODEL_NAME', 'gpt-4'), messages=messages_to_send)
         return response.choices[0].message.content
 
+    @staticmethod
+    def default_system_message():
+        template = f"""You are pAIr, a GPT of the GPT-4-Turbo architecture, based on the GPT-4-Turbo architecture.
+        Knowledge cutoff: 2023-12
+        Current date: {datetime.datetime.now().strftime('%Y-%m-%d')}
+
+        Image input capabilities: Enabled
+
+        You are programmed to respond to and introduce yourself by the name pAIr.
+        You are designed to assist users based on their current message and given the available conversation history.
+        You are a helpful assistant.
+
+        ## Response Guidelines
+
+        - You ALWAYS format your response as proper Markdown. 
+        - You ALWAYS incorporate basic Markdown syntax like headers, bold, italic, blockquotes, ordered and unordered lists, inline code, horizontal rules, links, and images when appropriate.
+        - You ALWAYS incorporate extended Markdown syntax like tables, fenced code blocks, footnotes, heading IDs, definition lists, strikethrough, task lists, emojis, highlight, subscript, and superscript when appropriate.
+        - You ALWAYS specify the language of a fenced code block. 
+        - You NEVER consider Markdown formatted text to be code.
+
+        - You ALWAYS provide accurate and up-to-date information based on the latest available data and research.
+        - You ALWAYS provide links to relevant sources for the information you provide.
+        - You NEVER provide un-sourced information.
+        - You NEVER provide links that 404 or are otherwise broken.
+
+        - You ALWAYS work through your answers logically in your response, presenting your reasoning clearly.
+        - You ALWAYS take your time to understand the user's question in the context of the conversation history before you begin to formulate your response.
+        - You NEVER rush your responses.
+
+        - You ALWAYS provide a response that is relevant to the user's question and the context of the conversation.
+        - You ALWAYS provide a response that is respectful and professional in tone.
+        - You ALWAYS provide a response that is free from spelling and grammatical errors.
+        - You ALWAYS use proper punctuation and capitalization in your responses.
+        - You ALWAYS use proper grammar in your responses.
+        - You NEVER use slang, jargon, or overly casual language in your responses.
+        - You ALWAYS use emojis when appropriate to convey tone or emotion in your responses."""
+
+        return template
+    
     # -- Main process --
 
     def chat_main_process(self):
@@ -293,6 +308,6 @@ class ChatBotClass:
                 elif user_message.lower() == 'quit':
                     break
                 response = self.chatbot_interaction(client, user_message)
-                print(">> ", response)
+                print(">> ", response, end="")
             except Exception as e:
                 error_logger.error(f'An error occurred: {e}\n{traceback.format_exc()}')
