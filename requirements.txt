@@ -3,3 +3,6 @@ python-dotenv
 prompt-toolkit
 regex
 rich
+fastapi
+uvicorn
+python-multipart
