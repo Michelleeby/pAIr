@@ -29,6 +29,11 @@ ready(() => {
         return hljs.highlightAll();
       }
     });
+     // Highlight code blocks in preview
+  if (window.hljs) {
+    return hljs.highlightAll();
+  }
+  
   });
 
   // Convert chat history to Markdown string
