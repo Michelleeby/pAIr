@@ -24,17 +24,13 @@ function ready(fn) {
 ready(() => {
   // Live Markdown preview for user input
   userInput.addEventListener('input', () => {
-    markdownPreview.innerHTML = marked.parse(userInput.value, {
-      highlight: function() {
-        return hljs.highlightAll();
-      }
-    });
-     // Highlight code blocks in preview
-  if (window.hljs) {
-    return hljs.highlightAll();
-  }
-  
+    markdownPreview.innerHTML = marked.parse(userInput.value);
+    if (window.hljs) {
+      // Only highlight code blocks in the preview area
+      markdownPreview.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+    }
   });
+  
 
   // Convert chat history to Markdown string
   function chatHistoryToMarkdown() {
