@@ -4,12 +4,30 @@
   <meta charset="UTF-8">
   <title>Pair Chatbot</title>
   <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css" id="github-markdown-theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css" id="highlightjs-theme">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0"></script>
+  <script>
+    // Optional: Simple dark mode toggle
+    function setTheme(dark) {
+      document.getElementById('github-markdown-theme').href = dark
+        ? 'https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-dark.min.css'
+        : 'https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css';
+      document.getElementById('highlightjs-theme').href = dark
+        ? 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css'
+        : 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css';
+      document.body.classList.toggle('dark', dark);
+    }
+    // Detect system preference
+    setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => setTheme(e.matches));
+  </script>
 </head>
 <body>
   <div class="container">
     <div class="chat-panel">
-      <div id="chat-history"></div>
+      <div id="chat-history" class="markdown-body"></div>
       <form id="chat-form">
         <div class="input-preview">
           <textarea id="user-input" placeholder="Type your message in Markdown..." rows="4"></textarea>

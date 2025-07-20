@@ -38,11 +38,36 @@ body {
     align-self: flex-start;
   }
   .message .content {
-    display: inline-block;
-    padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 18px;
     border-radius: 6px;
-    max-width: 80%;
     word-break: break-word;
+    overflow-x: visible;
+    overflow-y: visible;
+    position: relative;
+  }
+  .markdown-body pre {
+    background: inherit; /* Let theme handle it */
+    border-radius: 6px;
+    padding: 12px;
+    overflow-x: auto;
+    max-width: 100%;
+    margin: 0 0 1em 0;
+    font-size: 0.97em;
+    box-sizing: border-box;
+    position: relative;
+  }
+  .markdown-body code {
+    font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
+    font-size: 0.97em;
+  }
+  .markdown-body pre code {
+    display: block;
+    padding: 0;
+    background: none;
+    overflow-x: auto;
+    max-height: 350px; /* Limit code block height */
   }
   .input-preview {
     display: flex;
@@ -79,3 +104,42 @@ body {
   button[type="submit"]:hover {
     background: #0056b3;
   }
+  body.dark {
+    background: #22272e;
+  }
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.copy-btn:hover {
+    opacity: 1;
+}
+
+.code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.code-copy-btn:hover {
+    opacity: 1;
+}

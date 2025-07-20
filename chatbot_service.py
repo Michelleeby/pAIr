@@ -79,15 +79,18 @@ class ChatBotService:
         tokens = self.session.count_tokens(full_message)
         if tokens > TOKEN_MAX_LIMIT:
             # Truncate context to fit within the limit
-            # (You can implement a smarter truncation if needed)
             allowed_tokens = TOKEN_MAX_LIMIT - self.session.count_tokens(f"PROMPT:{user_message}")
             truncated_context = self.session.tokenizer.decode(
                 self.session.tokenizer.encode(context_str)[:allowed_tokens]
             )
             full_message = f"CONTEXT:{truncated_context}\nPROMPT:{user_message}"
 
-        self.session.add_message("user", full_message)
+        # Store only the user prompt in history, not the context
+        self.session.add_message("user", user_message)
         messages_to_send = self.session.get_messages()
+        # For the model, replace the last user message with the full_message (context+prompt)
+        messages_to_send[-1]["content"] = full_message
+
         response = self.client.chat.completions.create(
             model=os.getenv('GPT_MODEL_NAME', 'gpt-4.1'),
             messages=messages_to_send
