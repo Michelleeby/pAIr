@@ -1,0 +1,269 @@
+body {
+    font-family: system-ui, sans-serif;
+    background: #f6f8fa;
+    margin: 0;
+    padding: 0;
+  }
+  .container {
+    max-width: 700px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 24px;
+  }
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #chat-history {
+    min-height: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 12px;
+    background: #fafbfc;
+  }
+  .message {
+    margin-bottom: 16px;
+  }
+  .message.user .content {
+    background: #e6f7ff;
+    align-self: flex-end;
+  }
+  .message.system .content {
+    background: #f0f0f0;
+    align-self: flex-start;
+  }
+  .message .content {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 18px;
+    border-radius: 6px;
+    word-break: break-word;
+    overflow-x: visible;
+    overflow-y: visible;
+    position: relative;
+  }
+  .markdown-body pre {
+    background: inherit; /* Let theme handle it */
+    border-radius: 6px;
+    padding: 32px 12px 12px 12px; /* Increased top padding for code block buttons */
+    overflow-x: auto;
+    max-width: 100%;
+    margin: 0 0 1em 0;
+    font-size: 0.97em;
+    box-sizing: border-box;
+    position: relative;
+  }
+  .markdown-body code {
+    font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
+    font-size: 0.97em;
+  }
+  .markdown-body pre code {
+    display: block;
+    padding: 0;
+    background: none;
+    overflow-x: auto;
+    max-height: 350px; /* Limit code block height */
+  }
+  .input-preview {
+    display: flex;
+    gap: 16px;
+  }
+  #user-input {
+    width: 50%;
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1em;
+    padding: 8px;
+  }
+  #markdown-preview {
+    width: 50%;
+    min-height: 60px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 8px;
+    overflow: auto;
+    font-size: 0.95em;
+  }
+  button[type="submit"] {
+    margin-top: 8px;
+    padding: 8px 20px;
+    font-size: 1em;
+    border: none;
+    border-radius: 6px;
+    background: #007bff;
+    color: #fff;
+    cursor: pointer;
+  }
+  button[type="submit"]:hover {
+    background: #0056b3;
+  }
+  body.dark {
+    background: #22272e;
+  }
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 18px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    margin-top: 4px; /* Pushes the button down slightly */
+}
+.copy-btn:hover {
+    opacity: 1;
+}
+
+.code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.85em;
+    cursor: pointer;
+    z-index: 2;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.code-copy-btn:hover {
+    opacity: 1;
+}
+
+.file-drop-zone {
+  border: 2px dashed #007bff;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 12px;
+  background: #f6f8fa;
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+  margin-top: 16px; /* Adds space above the drop zone */
+}
+.file-drop-zone.dragover {
+  background: #e6f7ff;
+  border-color: #0056b3;
+}
+#file-list {
+  margin-top: 8px;
+  text-align: left;
+}
+#file-list div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.97em;
+}
+.remove-file-btn {
+  background: none;
+  border: none;
+  color: #d9534f;
+  font-size: 1.1em;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 1em;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s, box-shadow 0.2s;
+  min-width: 40px;
+  min-height: 40px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+.icon-btn .btn-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
+
+.icon-btn .btn-label {
+  opacity: 0;
+  max-width: 0;
+  margin-left: 0;
+  transition: opacity 0.2s, max-width 0.2s, margin-left 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 500;
+}
+
+.icon-btn:hover, .icon-btn:focus {
+  background: #0056b3;
+}
+
+.icon-btn:hover .btn-label,
+.icon-btn:focus .btn-label {
+  opacity: 1;
+  max-width: 200px;
+  margin-left: 8px;
+}
+
+.icon-btn:active {
+  background: #003e80;
+}
+
+/* --- pAIr Processing Message Ellipsis --- */
+.processing-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #007bff;
+  font-weight: 500;
+  font-size: 1.07em;
+  margin-bottom: 16px;
+  margin-left: 8px;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.processing-ellipsis span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #007bff;
+  margin-right: 2px;
+  animation: bounce 1.1s infinite;
+}
+.processing-ellipsis span:nth-child(2) {
+  animation-delay: 0.25s;
+}
+.processing-ellipsis span:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { opacity: 0.5; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-4px);}
+}
