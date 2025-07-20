@@ -1,45 +1,49 @@
 # pAIr
 
-Simple pair programming/chat assistant CLI tool powered by openAI (defaults to "gpt-4" model).
+Simple pair programming/chat assistant CLI and Web App powered by OpenAI (defaults to "gpt-4" model).
+
+---
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage (CLI)](#usage-cli)
+- [Usage (Web App)](#usage-web-app)
+- [Training the Tokenizer](#training-the-tokenizer)
+- [Thanks and Enjoy](#thanks-and-enjoy)
+
+---
 
 ## Requirements
 
 - [Python](https://www.python.org/) (12.2.0+ recommended)
 - [OpenAI API key (free or paid)](https://platform.openai.com/api-keys)
 
+---
+
 ## Features
 
-- Chat with `gpt4` without leaving the terminal
+- Chat with `gpt-4` in your terminal **or** browser
 - Set the system prompt during the conversation
-- Train the tokenizer with your own chat logs
+- Upload and inject file context (webapp only)
+- Live Markdown preview as you type (webapp)
+- Syntax highlighting and copy-to-clipboard for code blocks
+- Download chat history as Markdown
+- Start new chat sessions with confirmation and save prompts
+- Train the BPE tokenizer with your own chat logs
 - Markdown formatted chat responses
+
+---
 
 ## Installation
 
-Your going to need a working python version. This code was developed with 12.2.0. You can check your python version by running the following command:
-
-```bash
-python --version
-```
-
-Check out [pyenv](https://github.com/pyenv) if you need to manage multiple python versions.
-
-If you want to quickly get set up with python 12.2.0, you can run something like the following:
-
-```bash
-curl https://pyenv.run | bash
-echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init --path)"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-source ~/.bashrc
-pyenv install 12.2.0
-```
-
-Next, you need to install the required dependencies. Its recommended to use a virtual environment. You can do this similar to:
+### 1. Clone and Setup Python Environment
 
 ```bash
 git clone https://github.com/Michelleeby/pAIr.git && cd pAIr
-
 echo "12.2.0" > .python-version
 
 if [ -d "pair" ]; then
@@ -52,40 +56,27 @@ fi
 pip install -r requirements.txt
 ```
 
-## Adding an alias
+### 2. Install Frontend Static Files (Webapp Only)
 
-You can add an alias to your `.bashrc` or `.zshrc` file to quickly start the chat assistant. As an example:
+The webapp uses only static HTML/CSS/JS, so no build step or npm install is needed for basic use.
 
-```bash
-echo "alias pair='source $(pwd)/pair/bin/activate && python $(pwd)/pair.py && deactivate'" >> ~/.bashrc
-source ~/.bashrc
-```
+If you want to customize themes or bundle, see the `/static` folder.
 
-Then simply type `pair` in your terminal to start the chat assistant.
+---
 
 ## Configuration
 
-You can configure the chat assistant by setting the following environment variables:
+pAIr uses environment variables (from `.env`) for configuration.
 
-- `OPENAI_API_KEY`: Your openAI API key
-- `GPT_MODEL_NAME`: The name of the model to use (default "gpt-4")
-- `MODEL_PATH`: The path to the model file for the tokenizer
-- `TRAINING_DATA_PATH`: The path to the chat log file for training the tokenizer
-- `PAT_STR`: The pattern string for the tokenizer
+**Minimum required:**
 
-## Usage
-
-pAIr relies on environment variables for configuration. By design it will read from a `.env` file in the root of the project.
-
-The only variable required to run is an openAI API key defined like:
-
-```plaintext
+```env
 OPENAI_API_KEY=your-api-key-here
 ```
 
-Here is an example `.env` file that includes all the possible configuration options:
+**All supported variables:**
 
-```plaintext
+```env
 OPENAI_API_KEY=your-api-key-here
 GPT_MODEL_NAME=gpt-4
 MODEL_PATH=pair.pkl
@@ -93,73 +84,128 @@ TRAINING_DATA_PATH=sample-training-data.log
 PAT_STR=('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))
 ```
 
-If you've properly set your API key, you should see the following prompt when you run `pair` in terminal:
+---
 
-```plaintext
-Start chatting (type 'quit' to stop, press 'ctrl-d' to send)
-> 
+## Usage (CLI)
+
+After setup, activate your environment:
+
+```bash
+source pair/bin/activate
 ```
 
-You can now start chatting with the AI. To send a message, press `ctrl-d`. To stop the conversation, type `quit` and press `ctrl-d`.
+Start the chat assistant:
 
-The prompt allows for multiline input so paste your code snippets directly into the terminal. Markdown code blocks and all 😁
-
-Responses are formatted in markdown for easy reading. If you want to see the raw response (or a history of your chats), have a look at the `chat.log` file in the root of the project.
-
-As well as basic chat functionality, pAIr has a few extra features!
-
-### Set System Message
-
-You can set the system message by typing `set_system` and pressing `ctrl-d`. 
-
-You will be asked if you'd like to append to the current system message. If yes, press enter . Or if you'd like to set it fresh, press `n` and then return.
-
-Now, type your message and press `ctrl-d` again to set the new system prompt. The new message will be displayed on success.
-
-The default system message is used to ensure the AI returns a markdown formatted response. It also sets some configurations and tunings. Here is the default system message:
-
-```plaintext
-You are a GPT GPT-4 architecture, based on the GPT-4 architecture.
-Knowledge cutoff: 2023-04
-Current date: 2024-04-09
-
-Image input capabilities: Enabled
-
-You are programmed to respond to and introduce yourself by the name pAIr.
-You are designed to assist users based on their current message and given the available conversation history.
-You are a helpful assistant.
-
-## Your response guidelines
-
-- You ALWAYS format your response as proper Markdown, including code blocks, headers, links, bold, italics, lists, tables, images, inline code, and blockquotes.
-- You ALWAYS specify the language of a code block. 
-- You NEVER consider Markdown formatted text to be code.
-- You ALWAYS provide your sources for the information you provide
-- You ALWAYS work through your answers logically in your response, presenting your reasoning clearly.
-- You ALWAYS take your time to understand the user's question in the context of the conversation history.
-- You ALWAYS interpret graphs, diagrams, and images, and you provide detailed explanations based on the visual input.
-- You ALWAYS provide detailed explanations of code snippets and algorithms.
-- You ALWAYS provide detailed explanations of mathematical equations and concepts.
-- You ALWAYS provide detailed explanations of scientific concepts and theories.
+```bash
+python pair.py
 ```
 
-You can also return this message by returning nothing when prompted to set the system message.
+Or add an alias in your `.bashrc` or `.zshrc`:
 
-This default prompt is largely inspired by [these promtps](https://gist.github.com/alexandreteles/8aa56ec416b7fe2fc1ee0a687995925a).
+```bash
+echo "alias pair='source $(pwd)/pair/bin/activate && python $(pwd)/pair.py && deactivate'" >> ~/.bashrc
+source ~/.bashrc
+```
 
-### Train the tokenizer
+### CLI Features
 
-You can train the tokenizer with your own chat logs (or any other data).
+- Start chatting in the terminal with Markdown support
+- Multiline message entry (press `Ctrl+D` to send)
+- Type `quit` and press `Ctrl+D` to exit
+- Responses formatted in Markdown for easy reading
+- System prompt can be set/updated interactively (`set_system`)
+- Chat history saved in `chat.log`
 
-The code will default to training from the `sample-training-data.log` file [provided in this repository](https://github.com/Michelleeby/pAIr/blob/4f4dd9779891d7e86eac40f99c4955800709f027/sample-training-data.log) on pAIr first use. If you have other data you want to train the tokenizer with, set the `TRAINING_DATA_PATH` environment variable to the path of the file. Its assumed the data is something like a chat log with alternating messages and markdown code blocks. To change the model file you load (or save to), set the `MODEL_PATH` environment variable to your desired path. If your data is not in the format of alternating messages and code blocks, you can change the pattern string used to tokenize the data by setting the `PAT_STR` environment variable.
+#### System Prompt (CLI only)
 
-For more info take a look at [__init__.py](https://github.com/Michelleeby/pAIr/blob/0ec83de1af0845f58f829b77c328c9253b6af9ff/__init__.py#L10-L13):
+Type `set_system` and press `Ctrl+D`. You'll be prompted to append to/reset the default system message.
+
+#### Default System Message
+
+The system prompt makes the assistant always return fully Markdown formatted responses, with clear sections for code and explanations.
+
+---
+
+## Usage (Web App)
+
+You can use the web app to access all the features of the CLI and more, via a modern browser interface.
+
+### Starting the Web App
+
+After setup, activate your environment and start the FastAPI backend:
+
+```bash
+uvicorn app:app --reload
+```
+
+Then open your browser and visit: [http://localhost:8000](http://localhost:8000)
+
+### Web App Features
+
+#### Interface Overview
+
+- **Chat History:** Shows all messages in Markdown, with highlighted code
+- **Live Preview:** Type your message in Markdown and see a live, rendered preview before sending
+- **File Context:** Drag & drop or select multiple files to provide them as context to the assistant (files sent along with your message)
+- **Download Chat:** Save the current chat history as a `.md` Markdown file with a click
+- **Start New Chat:** Clears the chat and starts a new session, with save prompt if history not yet downloaded
+- **Copy Buttons:** Easily copy any AI code block or full response with one click
+- **Dark/Light Theme:** Automatically adapts to your OS preference
+
+#### How to Chat
+
+1. Type your message (supports Markdown, including code blocks)
+2. Optionally, select/drag files to inject as context (assistant will prioritize your files for this reply)
+3. Click **Send** or press `Enter`
+4. Read the AI's response with formatting and code highlights
+
+#### File Upload
+
+- Drop any number of `.txt`, `.py`, `.md`, or similar files in the dropzone
+- Remove files from the queue before sending if needed
+- Files are sent with your next message
+
+#### Chat History
+
+- Download your conversation anytime as a clean, formatted Markdown file
+- All user and assistant messages are saved (excluding system messages by default)
+
+#### System Prompt
+
+- The webapp applies the same system prompt as the CLI for each session
+- Future updates may allow specifying/changing it interactively
+
+#### Theme
+
+- Switches between light/dark automatically, respecting your device/system preferences
+
+---
+
+## Training the Tokenizer
+
+You can train your own tokenizer for more efficient message encoding and cost savings.
+
+The code will default to training from the `sample-training-data.log` file provided. To use your own data, set the `TRAINING_DATA_PATH` variable in `.env`.
+
+If the tokenizer model file (`MODEL_PATH`) doesn't exist, the system will train and save a new one on first run.
+
+**Sample pattern (`PAT_STR`) is suitable for chat logs and Markdown code:**
 
 ```python
-# Defaults
-model_path = os.getenv("MODEL_PATH", "pair.pkl")
-training_data_path = os.getenv("TRAINING_DATA_PATH", "sample-training-data.log")
-pat_str = os.getenv("PAT_STR", r"""('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))""")
+pat_str = r"""('s|'t|'re|'ve|'m|'ll|'d| ?[\p{L}]+| ?[\p{N}]+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+)|(```[\s\S]*?```)|(`[^`]*`)|(\[[^\]]*\]\([^)]*\))"""
 ```
 
-## Thanks and enjoy 🦾
+---
+
+## Thanks and Enjoy 🦾
+
+pAIr is Open Source. Contributions, bug reports, and suggestions welcome!
+
+For more, see:
+
+- [GitHub pAIr Source](https://github.com/Michelleeby/pAIr)
+- [OpenAI API](https://platform.openai.com/docs)
+
+---
+
+> Need help? [Open an Issue on GitHub](https://github.com/Michelleeby/pAIr/issues) or start chatting right away with pAIr! 🚀

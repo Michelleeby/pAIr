@@ -66,3 +66,17 @@ async def history_endpoint():
         if msg["role"] in ("user", "system"):
             filtered.append(msg)
     return {"history": filtered}
+
+# --- PATCH: Add endpoint for resetting the chat session ---
+@app.post("/reset_session")
+async def reset_session():
+    """
+    Resets the current chat session, both on backend and for the client's next chat.
+    """
+    global chatbot
+    # Re-instantiate the chatbot session object
+    chatbot = ChatBotService(
+        model_path=os.getenv("MODEL_PATH", "pair.pkl"),
+        openai_api_key=os.environ["OPENAI_API_KEY"]
+    )
+    return {"status": "session reset"}

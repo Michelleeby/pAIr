@@ -27,13 +27,33 @@
 <body>
   <div class="container">
     <div class="chat-panel">
+      <div class="chat-controls" style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button type="button" id="save-chat-btn" class="icon-btn" aria-label="Save Current Chat">
+          <!-- Save Icon (Floppy Disk) -->
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path d="M3 2a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V5.414A2 2 0 0 0 17.414 4L16 2.586A2 2 0 0 0 14.586 2H3zm0 2h11.586L17 6.414V17H3V4zm2 2v2h6V6H5zm0 4v5h10v-5H5z"/>
+          </svg>
+          <span class="btn-label">Save Current Chat</span>
+        </button>
+        <button type="button" id="new-chat-btn" class="icon-btn" aria-label="Start New Chat">
+          <!-- Plus Icon -->
+          <svg class="btn-icon" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path d="M10 4a1 1 0 0 1 1 1v4h4a1 1 0 1 1 0 2h-4v4a1 1 0 1 1-2 0v-4H5a1 1 0 1 1 0-2h4V5a1 1 0 0 1 1-1z"/>
+          </svg>
+          <span class="btn-label">Start New Chat</span>
+        </button>
+      </div>
       <div id="chat-history" class="markdown-body"></div>
       <form id="chat-form">
         <div class="input-preview">
           <textarea id="user-input" placeholder="Type your message in Markdown..." rows="4"></textarea>
           <div id="markdown-preview"></div>
         </div>
-        <input type="file" id="context-files" name="context_files" multiple>
+        <div id="file-drop-zone" class="file-drop-zone">
+          <input type="file" id="context-files" name="context_files" multiple style="display:none;">
+          <span id="file-drop-text">Drag & drop files here, or <button type="button" id="file-select-btn">browse</button></span>
+          <div id="file-list"></div>
+        </div>
         <button type="submit">Send</button>
       </form>
     </div>
