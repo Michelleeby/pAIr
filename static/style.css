@@ -48,7 +48,6 @@ body {
     position: relative;
   }
   .markdown-body pre {
-    background: inherit; /* Let theme handle it */
     border-radius: 6px;
     padding: 32px 12px 12px 12px; /* Increased top padding for code block buttons */
     overflow-x: auto;
@@ -65,7 +64,6 @@ body {
   .markdown-body pre code {
     display: block;
     padding: 0;
-    background: none;
     overflow-x: auto;
     max-height: 350px; /* Limit code block height */
   }
@@ -266,4 +264,14 @@ body {
 @keyframes bounce {
   0%, 80%, 100% { opacity: 0.5; transform: translateY(0); }
   40% { opacity: 1; transform: translateY(-4px);}
+}
+
+#web-search-options {
+  font-size: 0.98em;
+  margin-bottom: 8px;
+}
+#web-search-params {
+  padding: 4px 8px;
+  border: 1px solid #e1e4e8;
+  border-radius: 4px;
 }

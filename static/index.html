@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css" id="github-markdown-theme">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css" id="highlightjs-theme">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0"></script>
   <script>
     // Optional: Simple dark mode toggle
     function setTheme(dark) {
@@ -25,6 +24,7 @@
   </script>
 </head>
 <body>
+  
   <div class="container">
     <div class="chat-panel">
       <div class="chat-controls" style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -49,15 +49,25 @@
           <textarea id="user-input" placeholder="Type your message in Markdown..." rows="4"></textarea>
           <div id="markdown-preview"></div>
         </div>
-        <div id="file-drop-zone" class="file-drop-zone">
-          <input type="file" id="context-files" name="context_files" multiple style="display:none;">
-          <span id="file-drop-text">Drag & drop files here, or <button type="button" id="file-select-btn">browse</button></span>
-          <div id="file-list"></div>
+        <div id="web-search-options" style="margin: 8px 0;">
+          <label>
+            <input type="checkbox" id="enable-web-search" />
+            Enable Web Search
+          </label>
+          <input type="text" id="web-search-params" placeholder='{"search_engine": "bing"} (optional)' style="width: 60%; margin-left: 8px; font-size: 0.95em;" />
+        </div>
+        <div id="upload-drop-zone" class="file-drop-zone">
+          <input type="file" id="upload-files" multiple accept="image/*,application/pdf,.txt,.doc,.docx,.json,.csv,.md,.py,.js,.ts,.cpp,.c,.java,.zip,.tar,.gz,.xml,.html,.css,.xls,.xlsx,.ppt,.pptx,application/msword,application/vnd.*" style="display:none;" name="context_files">
+          <span id="upload-drop-text">
+            Drag & drop files or images here, or <button type="button" id="upload-select-btn">browse</button>
+          </span>
+          <div id="upload-list"></div>
         </div>
         <button type="submit">Send</button>
       </form>
     </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.11.1/build/highlight.min.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
