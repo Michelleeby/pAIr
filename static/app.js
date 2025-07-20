@@ -226,6 +226,18 @@ chatForm.addEventListener('submit', async (e) => {
   userInput.value = '';
   markdownPreview.innerHTML = '';
 
+  // Add processing message with animated ellipsis
+  const processingDiv = document.createElement('div');
+  processingDiv.className = 'processing-message';
+  processingDiv.innerHTML = `
+    <span class="processing-ellipsis">
+      <span></span><span></span><span></span>
+    </span>
+    <span>pAIr is processing your request...</span>
+  `;
+  chatHistory.appendChild(processingDiv);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
   const formData = new FormData();
   formData.append('message', message);
   droppedFiles.forEach(file => formData.append('context_files', file));
@@ -235,6 +247,12 @@ chatForm.addEventListener('submit', async (e) => {
     body: formData
   });
   const data = await res.json();
+
+  // Remove the processing message
+  if (processingDiv.parentNode) {
+    processingDiv.parentNode.removeChild(processingDiv);
+  }
+
   renderMessage('system', data.response, data.response);
 
   // Reset files after send
