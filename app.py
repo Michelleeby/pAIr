@@ -2,7 +2,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi import FastAPI, Request, UploadFile, File, Form, Body
 from tokenizer_init import initialize_tokenizer
 
 initialize_tokenizer() # Initialize the tokenizer here to ensure the model is trained/exists for chatbot service.
@@ -39,15 +39,40 @@ class SystemMessageRequest(BaseModel):
 @app.post("/chat")
 async def chat_endpoint(
     message: str = Form(...),
-    context_files: Optional[List[UploadFile]] = File(None)
+    context_files: Optional[List[UploadFile]] = File(None),
+    images: Optional[List[UploadFile]] = File(None),
+    web_search_options: Optional[str] = Form(None)
 ):
-    # Read file contents
     file_contents = []
     if context_files:
         for upload in context_files:
             content = (await upload.read()).decode("utf-8", errors="replace")
             file_contents.append(content)
-    reply = chatbot.chat(message, context_file_contents=file_contents)
+
+    image_datas = []
+    if images:
+        for img in images:
+            content = await img.read()
+            image_datas.append({
+                "filename": img.filename,
+                "content": content,
+                "content_type": img.content_type
+            })
+
+    import json
+    ws_opts = None
+    if web_search_options:
+        try:
+            ws_opts = json.loads(web_search_options)
+        except Exception:
+            ws_opts = None
+
+    reply = chatbot.chat(
+        message,
+        context_file_contents=file_contents,
+        web_search_options=ws_opts,
+        images=image_datas
+    )
     return {"response": reply}
 
 @app.post("/set_system")

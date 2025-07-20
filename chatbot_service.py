@@ -66,34 +66,39 @@ class ChatBotService:
     def set_system_message(self, content=None):
         self.session.set_system_message(content)
 
-    def chat(self, user_message, context_file_contents=None):
+    def chat(self, user_message, context_file_contents=None, web_search_options=None, images=None):
         # If context file contents are provided, concatenate and prepend
         context_str = ""
         if context_file_contents:
             context_str = "\n".join(context_file_contents)
-            full_message = f"CONTEXT:{context_str}\nPROMPT:{user_message}"
+        # For vision: add images as message content parts
+        user_content = []
+        if context_file_contents:
+            user_content.append({"type": "text", "text": f"CONTEXT:{context_str}\nPROMPT:{user_message}"})
         else:
-            full_message = user_message
-
-        # Token regulation: ensure the context+prompt fits within the token limit
-        tokens = self.session.count_tokens(full_message)
-        if tokens > TOKEN_MAX_LIMIT:
-            # Truncate context to fit within the limit
-            allowed_tokens = TOKEN_MAX_LIMIT - self.session.count_tokens(f"PROMPT:{user_message}")
-            truncated_context = self.session.tokenizer.decode(
-                self.session.tokenizer.encode(context_str)[:allowed_tokens]
-            )
-            full_message = f"CONTEXT:{truncated_context}\nPROMPT:{user_message}"
-
-        # Store only the user prompt in history, not the context
+            user_content.append({"type": "text", "text": user_message})
+        if images:
+            for img in images:
+                import base64
+                base64_data = base64.b64encode(img["content"]).decode("utf-8")
+                user_content.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:{img['content_type']};base64,{base64_data}",
+                        "detail": "auto"
+                    }
+                })
+        # Store only the user prompt in history, not the context or images
         self.session.add_message("user", user_message)
         messages_to_send = self.session.get_messages()
-        # For the model, replace the last user message with the full_message (context+prompt)
-        messages_to_send[-1]["content"] = full_message
+        # Overwrite last user message in history
+        if user_content and messages_to_send:
+            messages_to_send[-1]["content"] = user_content
 
         response = self.client.chat.completions.create(
             model=os.getenv('GPT_MODEL_NAME', 'gpt-4.1'),
-            messages=messages_to_send
+            messages=messages_to_send,
+            **({"web_search_options": web_search_options} if web_search_options else {})
         )
         reply = response.choices[0].message.content
         self.session.add_message("system", reply)
