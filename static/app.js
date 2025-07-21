@@ -11,16 +11,6 @@ const uploadList = document.getElementById('upload-list');
 let selectedFiles = [];
 let hasSavedChat = true; // Default to true when chat loads
 
-function ready(fn) {
-  if (document.readyState !== 'loading') {
-    setTimeout(fn, 0); // wait until the next event loop iteration.
-  } else {
-    document.addEventListener('DOMContentLoaded', function() {
-      setTimeout(fn, 0);
-    });
-  }
-}
-
 ready(() => {
   // Live Markdown preview for user input
   userInput.addEventListener('input', () => {
