@@ -19,6 +19,14 @@ ready(() => {
       // Only highlight code blocks in the preview area
       markdownPreview.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
     }
+    // Run mermaid after rendering
+    if (window.mermaid && typeof window.mermaid.run === 'function') {
+      markdownPreview.querySelectorAll('pre code').forEach(block => {
+        if (block.classList.contains('language-mermaid')) {
+          window.mermaid.run({nodes: [block]});
+        }
+      });
+    }
   });
   
 
@@ -99,6 +107,15 @@ ready(() => {
     if (window.hljs) {
       contentDiv.querySelectorAll('pre code').forEach(block => {
         hljs.highlightElement(block);
+      });
+    }
+
+    // Run mermaid after rendering
+    if (window.mermaid && typeof window.mermaid.run === 'function') {
+      contentDiv.querySelectorAll('pre code').forEach(block => {
+        if (block.classList.contains('language-mermaid')) {
+          window.mermaid.run({nodes: [block]});
+        }
       });
     }
 
