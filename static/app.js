@@ -13,7 +13,7 @@ let hasSavedChat = true; // Default to true when chat loads
 
 function ready(fn) {
   if (document.readyState !== 'loading') {
-    setTimeout(fn, 0);
+    setTimeout(fn, 0); // wait until the next event loop iteration.
   } else {
     document.addEventListener('DOMContentLoaded', function() {
       setTimeout(fn, 0);
