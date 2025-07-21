@@ -7,21 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css" id="github-markdown-theme">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css" id="highlightjs-theme">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script>
-    // Optional: Simple dark mode toggle
-    function setTheme(dark) {
-      document.getElementById('github-markdown-theme').href = dark
-        ? 'https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-dark.min.css'
-        : 'https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown-light.min.css';
-      document.getElementById('highlightjs-theme').href = dark
-        ? 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css'
-        : 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css';
-      document.body.classList.toggle('dark', dark);
-    }
-    // Detect system preference
-    setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => setTheme(e.matches));
-  </script>
+  <script src="/static/head.js"></script>
 </head>
 <body>
   

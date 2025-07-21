@@ -275,3 +275,130 @@ body {
   border: 1px solid #e1e4e8;
   border-radius: 4px;
 }
+
+/* --- DARK MODE: apply when body has class 'dark' --- */
+body.dark {
+  background: #161b22 !important;
+  color: #c9d1d9 !important;
+}
+
+body.dark .container {
+  background: #0d1117 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35) !important;
+}
+
+body.dark .chat-panel {
+  background: transparent;
+}
+
+body.dark #chat-history {
+  background: transparent !important;
+  border-color: #30363d !important;
+}
+
+body.dark .message.user .content {
+  background: #23272e !important;
+  color: #c9d1d9 !important;
+}
+
+body.dark .message.system .content {
+  background: #161b22 !important;
+  color: #c9d1d9 !important;
+}
+
+body.dark .message .content {
+  background: #161b22 !important;
+  color: #c9d1d9 !important;
+}
+
+body.dark .markdown-body {
+  background: transparent !important;
+  color: #c9d1d9 !important;
+}
+
+/* Inputs and Textareas */
+body.dark textarea,
+body.dark input[type="text"],
+body.dark input[type="file"] {
+  background: #161b22 !important;
+  color: #c9d1d9 !important;
+  border: 1px solid #30363d !important;
+}
+
+body.dark textarea:focus,
+body.dark input[type="text"]:focus {
+  outline: 2px solid #238636 !important;
+  background: #0d1117 !important;
+}
+
+body.dark #markdown-preview {
+  background: #161b22 !important;
+  border-color: #30363d !important;
+  color: #c9d1d9 !important;
+}
+
+/* Buttons: general/dark fill */
+body.dark button,
+body.dark .icon-btn,
+body.dark button[type="submit"] {
+  background: #238636 !important;
+  color: #f0f6fc !important;
+  border-color: #238636 !important;
+}
+
+body.dark .icon-btn:hover,
+body.dark button[type="submit"]:hover {
+  background: #2ea043 !important;
+}
+
+body.dark .icon-btn:active,
+body.dark button[type="submit"]:active {
+  background: #196c2e !important;
+}
+
+/* File Drop Zone */
+body.dark .file-drop-zone {
+  background: #161b22 !important;
+  border-color: #238636 !important;
+  color: #c9d1d9 !important;
+}
+
+body.dark .file-drop-zone.dragover {
+  background: #23272e !important;
+  border-color: #2ea043 !important;
+}
+
+/* Remove file button */
+body.dark .remove-file-btn {
+  color: #fa7970 !important;
+}
+
+/* Miscellaneous */
+body.dark #web-search-options,
+body.dark #web-search-params {
+  color: #c9d1d9 !important;
+  background: #161b22 !important;
+  border-color: #30363d !important;
+}
+
+body.dark .processing-message {
+  color: #58a6ff !important;
+}
+
+body.dark .copy-btn,
+body.dark .code-copy-btn {
+  background: #30363d !important;
+  color: #c9d1d9 !important;
+  border: 1px solid #454f5b !important;
+}
+
+body.dark .copy-btn:hover,
+body.dark .code-copy-btn:hover {
+  opacity: 1;
+  background: #484f58 !important;
+}
+
+body.dark ::selection {
+  background: #238636 !important;
+  color: #f0f6fc !important;
+}
