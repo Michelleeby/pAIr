@@ -89,13 +89,6 @@ class ChatBotService:
                         "detail": "auto"
                     }
                 })
-
-        # Token regulation code goes here:
-        # TODO: Token regulation needs to happen here to make sure context files and user prompt are within the token limit.
-        # Context files should track their tokens so that they can be displayed in the UI.
-        # If the token limit is exceeded, prompt the user to remove some context files.
-        # The user needs to know how many tokens over they are.
-
         # Store only the user prompt in history, not the context or images
         self.session.add_message("user", user_message)
         messages_to_send = self.session.get_messages()
