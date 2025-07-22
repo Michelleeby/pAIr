@@ -402,3 +402,52 @@ body.dark ::selection {
   background: #238636 !important;
   color: #f0f6fc !important;
 }
+
+.token-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.26);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.token-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 32px 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.16);
+  min-width: 300px;
+  max-width: 90vw;
+}
+body.dark .token-modal-content {
+  background: #161b22;
+  color: #c9d1d9;
+}
+
+.token-stats-bar {
+  font-size: 0.97em;
+  margin-bottom: 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  padding: 6px 10px;
+  border: 1px solid #e1e4e8;
+}
+body.dark .token-stats-bar {
+  background: #23272e;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+.token-spinner {
+  display: inline-block;
+  width: 16px; height: 16px;
+  border: 2px solid #007bff;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: token-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+@keyframes token-spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}

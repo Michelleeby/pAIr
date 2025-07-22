@@ -1,6 +1,20 @@
 // head.js
 
 /**
+ * @param {Function} func
+ * @param {number} delay
+ * @description
+ * This function is used to debounce a function call.
+ */
+function debounce(func, delay) {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+}
+
+/**
  * @param {Function} fn
  * @description
  * This function is used to ensure that the provided function is executed after the DOM is fully loaded.
@@ -13,6 +27,17 @@ function ready(fn) {
         setTimeout(fn, 0);
       });
     }
+}
+
+/**
+ * @param {string} text
+ * @description
+ * This function is used to escape HTML in a string.
+ */
+function escapeHtml(text) {
+  var div = document.createElement('div');
+  div.innerText = text;
+  return div.innerHTML;
 }
   
 /**
