@@ -16,6 +16,7 @@ class ChatSession:
     """
     def __init__(self, model_path, training_data=None, vocab_size=None, pat_str=None):
         self.tokenizer = TokenizerService(model_path, training_data, vocab_size, pat_str).tokenizer
+        self.token_limit = TOKEN_MAX_LIMIT
         self.all_messages = deque()
 
     def count_tokens(self, text: str) -> int:
@@ -26,7 +27,7 @@ class ChatSession:
 
     def manage_token_limit(self, new_message_tokens: int):
         total_tokens = self.calculate_total_tokens()
-        while total_tokens + new_message_tokens > TOKEN_MAX_LIMIT and len(self.all_messages) > 1:
+        while total_tokens + new_message_tokens > self.token_limit and len(self.all_messages) > 1:
             removed_message = self.all_messages.popleft()
             total_tokens -= removed_message['tokens']
         return total_tokens
