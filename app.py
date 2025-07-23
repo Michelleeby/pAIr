@@ -128,7 +128,7 @@ async def history_endpoint():
         if msg["role"] == "system" and idx == 0:
             continue  # skip system prompt
         if msg["role"] in ("user", "system"):
-            msg["tokens"] = tokenizer_count_service.tokenizer.encode(msg["content"])
+            msg["tokens"] = len(tokenizer_count_service.tokenizer.encode(msg["content"]))
             filtered.append(msg)
     return {"history": filtered}
 

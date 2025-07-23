@@ -410,6 +410,7 @@ function setupChatForm() {
     renderMessage('system', data.response, data.response);
     appState.set({ selectedFiles: [] });
     uploadFilesInput.value = '';
+    setTokenGroupsCounts();
   });
 }
 
@@ -439,19 +440,6 @@ function setupSaveAndNewChatButtons() {
     await fetch('/reset_session', { method: 'POST' });
     loadChatHistory();
   });
-}
-
-
-/**
- * Sums up the token counts for the current state of the app.
- */
-function updateTokenCount() {
-  appState.set({
-    totalTokenCount: appState.get().promptTokenCount + appState.get().filesTokenCounts.reduce((sum, f) => sum + f.token_count, 0) + appState.get().chatHistoryTokenCount,
-    tokenCountsLoading: false
-  });
-  renderTokenStatsBar(appState.get());
-  updateSendButtonState(appState.get());
 }
 
 /**
@@ -634,11 +622,6 @@ function initializeAppState() {
   setTokenGroupsCounts();
   loadChatHistory();
 }
-
-/**
- * Debounced version of updateTokenCounts for input/file changes.
- */
-const updateTokenCountDebounced = debounce(updateTokenCount, DEBOUNCE_DELAY);
 
 /**
  * Debounced version of updateTokenGroup for input/file changes.
