@@ -1,3 +1,12 @@
+// =============================
+// Constants
+// =============================
+const DEBOUNCE_DELAY = 300;
+const TOKEN_LIMIT = 1000000;
+
+// =============================
+// DOM Elements
+// =============================
 const chatHistory = document.getElementById('chat-history');
 const chatForm = document.getElementById('chat-form');
 const userInput = document.getElementById('user-input');
@@ -11,49 +20,102 @@ const tokenStatsBar = document.createElement('div');
 tokenStatsBar.className = 'token-stats-bar';
 chatForm.insertBefore(tokenStatsBar, chatForm.firstChild);
 
-let selectedFiles = [];
-let hasSavedChat = true;            // Default to true when chat loads
-let filesTokenCounts = [];          // {filename, token_count}
-let promptTokenCount = 0;
-let chatHistoryTokenCount = 0;
-let totalTokenCount = 0;
-let tokenLimit = 1000000;           // Will be updated by backend on first response
-let tokenCountsLoading = false;
-let lastTokenCountPayload = null;   // For debounce/input dedupe
-let tokenCountRequestId = 0;        // To sync async responses and ignore race conditions
+// =============================
+// State Store
+// =============================
+const appState = (() => {
+  const initialState = {
+    selectedFiles: [],
+    hasSavedChat: true,
+    filesTokenCounts: [],
+    promptTokenCount: 0,
+    chatHistoryTokenCount: 0,
+    totalTokenCount: 0,
+    tokenLimit: TOKEN_LIMIT,
+    tokenCountsLoading: false,
+    frontendTokenizer: null,
+    modelLoadingPromise: null,
+  };
+
+  let state = { ...initialState };
+  const listeners = new Set();
+
+  function recomputeDerived(nextState) {
+    // Sanity: always compute the sum.
+    nextState.totalTokenCount =
+      (nextState.promptTokenCount || 0) +
+      (nextState.filesTokenCounts
+        ? nextState.filesTokenCounts.reduce((sum, f) => sum + (f.token_count || 0), 0)
+        : 0) +
+      (nextState.chatHistoryTokenCount || 0);
+
+    // if other derived values, recalc here too
+  }
+
+  return {
+    get: () => ({ ...state }),
+    set: (updates) => {
+      // Merge the updates first
+      const nextState = { ...state, ...updates };
+      recomputeDerived(nextState);         // <--- always recalculate
+      state = nextState;
+      listeners.forEach(fn => fn(state));
+    },
+    subscribe: (fn) => {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    reset: () => {
+      state = { ...initialState };
+      listeners.forEach(fn => fn(state));
+    }
+  };
+})();
 
 // =============================
 // "ready" - Top Level Execution
 // =============================
 
 ready(() => {
+  initializeTokenizer();
   initializeTokenStatsBar();
   setupFileInputs();
   setupMarkdownPreview();
   setupChatForm();
   setupSaveAndNewChatButtons();
   initializeAppState();
+
+  appState.subscribe(state => {
+    renderTokenStatsBar(state);
+    updateUploadList(state);
+    updateSendButtonState(state);
+  });
 });
 
 // ====================
 // Function Definitions
 // ====================
 
-/**
- * Get token count for a string or files from backend.
- * @param {Object} opts = {text: string, files: File[]}
- * @returns {Promise<{text_token_count?:number, files?:Array<{filename:string, token_count:number}>}>}
- */
-function getTokenCounts({ text, files }) {
-  const formData = new FormData();
-  if (text) formData.append('text', text);
-  if (files && files.length) {
-    files.forEach(f => formData.append('files', f));
+function initializeTokenizer() {
+  ensureFrontendTokenizer().then(tok => appState.set({ frontendTokenizer: tok }));
+}
+
+// Initialize and cache the tokenizer
+async function ensureFrontendTokenizer() {
+  if (appState.get().frontendTokenizer) return appState.get().frontendTokenizer;
+  if (!appState.get().modelLoadingPromise) {
+    appState.set({ modelLoadingPromise: FrontendBPETokenizer.loadModel()
+      .then(model => appState.set({ frontendTokenizer: new FrontendBPETokenizer(model) }))
+    });
   }
-  return fetch('/token_count', {
-    method: 'POST',
-    body: formData
-  }).then(r => r.json());
+  await appState.get().modelLoadingPromise;
+  return appState.get().frontendTokenizer;
+}
+
+// Count tokens locally
+async function fastLocalTokenCount(text) {
+  if (!text) return 0;
+  return appState.get().frontendTokenizer.encode(text).length;
 }
 
 /**
@@ -68,10 +130,11 @@ function initializeTokenStatsBar() {
  * Updates counts (debounced).
  */
 function onContextFilesChanged() {
-  updateTokenCountsDebounced();
+  setTokenGroupCountsDebounced('context_files');
 }
+
 function onUserInputChanged() {
-  updateTokenCountsDebounced();
+  setTokenGroupCountsDebounced('user_input');
 }
 
 /**
@@ -127,7 +190,7 @@ async function loadChatHistory() {
         msg.role === 'system' ? msg.content : null
       );
     });
-  hasSavedChat = false;
+  appState.set({ hasSavedChat: false });
 }
 
 /**
@@ -202,16 +265,16 @@ function renderMessage(role, content, rawMarkdown = null) {
   });
 
   chatHistory.scrollTop = chatHistory.scrollHeight;
-  hasSavedChat = false;
+  appState.set({ hasSavedChat: false });
 }
 
 /**
  * Updates the file upload list UI.
  */
-function updateUploadList() {
+function updateUploadList(state) {
   uploadList.innerHTML = '';
-  if (selectedFiles.length === 0) return;
-  selectedFiles.forEach((file, idx) => {
+  if (state.selectedFiles.length === 0) return;
+  state.selectedFiles.forEach((file, idx) => {
     const div = document.createElement('div');
     const icon = file.type.startsWith('image/') ? '🖼️' : '📄';
     div.innerHTML = `${icon}&nbsp;${file.name}`;
@@ -219,9 +282,9 @@ function updateUploadList() {
     removeBtn.textContent = '✕';
     removeBtn.className = 'remove-file-btn';
     removeBtn.addEventListener('click', () => {
-      selectedFiles.splice(idx, 1);
-      updateUploadList();
-      onContextFilesChanged();
+      state.selectedFiles.splice(idx, 1);
+      updateUploadList(state);
+      onContextFilesChanged(state);
     });
     div.appendChild(removeBtn);
     uploadList.appendChild(div);
@@ -233,11 +296,10 @@ function updateUploadList() {
  */
 function addFiles(files) {
   for (const f of files) {
-    if (!selectedFiles.some(existing => existing.name === f.name && existing.size === f.size && existing.type === f.type)) {
-      selectedFiles.push(f);
+    if (!appState.get().selectedFiles.some(existing => existing.name === f.name && existing.size === f.size && existing.type === f.type)) {
+      appState.get().selectedFiles.push(f);
     }
   }
-  updateUploadList();
 }
 
 /**
@@ -248,7 +310,7 @@ function setupFileInputs() {
   uploadFilesInput.addEventListener('change', (e) => {
     addFiles(Array.from(uploadFilesInput.files));
     uploadFilesInput.value = '';
-    onContextFilesChanged();
+    onContextFilesChanged(appState.get());
   });
   ['dragenter', 'dragover'].forEach(eventName => {
     uploadDropZone.addEventListener(eventName, (e) => {
@@ -268,7 +330,7 @@ function setupFileInputs() {
   uploadDropZone.addEventListener('drop', (e) => {
     e.preventDefault(); e.stopPropagation();
     addFiles(Array.from(e.dataTransfer.files));
-    onContextFilesChanged();
+    onContextFilesChanged(appState.get());
   });
 }
 
@@ -288,7 +350,7 @@ function setupMarkdownPreview() {
         }
       });
     }
-    onUserInputChanged();
+    onUserInputChanged(appState.get());
   });
 }
 
@@ -298,11 +360,11 @@ function setupMarkdownPreview() {
 function setupChatForm() {
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (tokenCountsLoading) {
+    if (appState.get().tokenCountsLoading) {
       alert('Token counting in progress — please wait.');
       return;
     }
-    if (totalTokenCount > tokenLimit) {
+    if (appState.get().totalTokenCount > appState.get().tokenLimit) {
       showOverLimitModal();
       return;
     }
@@ -326,7 +388,7 @@ function setupChatForm() {
     const formData = new FormData();
     formData.append('message', message);
 
-    selectedFiles.forEach(file => {
+    appState.get().selectedFiles.forEach(file => {
       if (file.type && file.type.startsWith('image/')) formData.append('images', file);
       else formData.append('context_files', file);
     });
@@ -346,9 +408,8 @@ function setupChatForm() {
     const data = await res.json();
     if (processingDiv.parentNode) processingDiv.parentNode.removeChild(processingDiv);
     renderMessage('system', data.response, data.response);
-    selectedFiles = [];
+    appState.set({ selectedFiles: [] });
     uploadFilesInput.value = '';
-    updateUploadList();
   });
 }
 
@@ -358,24 +419,23 @@ function setupChatForm() {
 function setupSaveAndNewChatButtons() {
   document.getElementById('save-chat-btn').addEventListener('click', () => {
     downloadChatAsMarkdown();
-    hasSavedChat = true;
+    appState.set({ hasSavedChat: true });
   });
 
   document.getElementById('new-chat-btn').addEventListener('click', async () => {
-    if (!hasSavedChat) {
+    if (!appState.get().hasSavedChat) {
       if (confirm("You have unsaved chat history. Would you like to save before starting a new chat?")) {
         downloadChatAsMarkdown();
-        hasSavedChat = true;
+        appState.set({ hasSavedChat: true });
         await new Promise(resolve => setTimeout(resolve, 250));
       }
     }
     chatHistory.innerHTML = '';
     userInput.value = '';
     markdownPreview.innerHTML = '';
-    selectedFiles = [];
+    appState.set({ selectedFiles: [] });
     uploadFilesInput.value = '';
-    updateUploadList();
-    hasSavedChat = true;
+    appState.set({ hasSavedChat: true });
     await fetch('/reset_session', { method: 'POST' });
     loadChatHistory();
   });
@@ -383,71 +443,76 @@ function setupSaveAndNewChatButtons() {
 
 
 /**
- * Ranges of token management handling
+ * Sums up the token counts for the current state of the app.
  */
-async function updateTokenCounts() {
-  const filesToCount = selectedFiles.filter(f => !f.type.startsWith('image/'));
-  const text = userInput.value.trim();
-  const currentPayload = JSON.stringify({
-    text: text,
-    files: filesToCount.map(f => f.name + '.' + f.size + '.' + f.type),
+function updateTokenCount() {
+  appState.set({
+    totalTokenCount: appState.get().promptTokenCount + appState.get().filesTokenCounts.reduce((sum, f) => sum + f.token_count, 0) + appState.get().chatHistoryTokenCount,
+    tokenCountsLoading: false
   });
-  if (lastTokenCountPayload === currentPayload && !tokenCountsLoading) return;
-  lastTokenCountPayload = currentPayload;
+  renderTokenStatsBar(appState.get());
+  updateSendButtonState(appState.get());
+}
 
-  tokenCountsLoading = true;
-  renderTokenStatsBar();
+/**
+ * Reads a file as text.
+ */
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}
 
-  tokenCountRequestId += 1;
-  const reqId = tokenCountRequestId;
-
-  try {
-    const result = await getTokenCounts({ text, files: filesToCount });
-    if (reqId !== tokenCountRequestId) return;
-
-    filesTokenCounts = (result.files || []).map(f => ({
-      filename: f.filename,
-      token_count: f.token_count || 0
-    }));
-    promptTokenCount = result.text_token_count || 0;
-
-    // Fetch chat history token count
-    let historyRes = await fetch('/history');
-    let hist = await historyRes.json();
-    chatHistoryTokenCount = 0;
-    if (hist.history) {
-      for (const msg of hist.history) {
-        if (msg && typeof msg.content === 'string') {
-          chatHistoryTokenCount += (msg.tokens || 0);
-        }
-      }
-    }
-
-    totalTokenCount = promptTokenCount +
-      filesTokenCounts.reduce((sum, f) => sum + f.token_count, 0) +
-      chatHistoryTokenCount;
-
-    if (result.token_limit) tokenLimit = result.token_limit;
-
-    tokenCountsLoading = false;
-    renderTokenStatsBar();
-    updateSendButtonState();
-  } catch (err) {
-    tokenCountsLoading = false;
-    renderTokenStatsBar(`Failed to count tokens: ${err.message || err}`);
-    updateSendButtonState();
+/**
+ * Updates the token count for a specific group.
+ */
+async function setTokenGroupCounts(tokenGroup) {
+  if (tokenGroup === 'context_files') {
+    const counts = await Promise.all(
+      appState.get().selectedFiles
+        .filter(f => !f.type.startsWith('image/'))
+        .map(async (f) => {
+          const content = await readFileAsText(f);
+          const tokenCount = await fastLocalTokenCount(content);
+          return {
+            filename: f.name,
+            token_count: tokenCount
+          };
+        })
+    );
+      appState.set({ filesTokenCounts: counts });
+  } else if (tokenGroup === 'user_input') {
+    appState.set({ promptTokenCount: await fastLocalTokenCount(userInput.value.trim()) });
+  } else if (tokenGroup === 'chat_history') {
+    const history = await fetch('/history').then(r => r.json());
+    appState.set({ chatHistoryTokenCount: history.history.reduce((sum, msg) => sum + (msg.tokens || 0), 0) });
+  } else {
+    throw new Error(`Invalid token group: ${tokenGroup}`);
   }
+}
+
+/**
+ * Updates the token counts for all groups.
+ */
+async function setTokenGroupsCounts() {
+  await setTokenGroupCounts('context_files');
+  await setTokenGroupCounts('user_input');
+  await setTokenGroupCounts('chat_history');
 }
 
 /**
  * Updates the token stats bar's HTML based on current state.
  */
-function renderTokenStatsBar(error) {
-  if (error) {
-    tokenStatsBar.innerHTML = `<span style="color:red;">${error}</span>`;
+function renderTokenStatsBar(state) {
+  const { promptTokenCount, filesTokenCounts, chatHistoryTokenCount, totalTokenCount, tokenLimit } = state;
+  if (state.error) {
+    tokenStatsBar.innerHTML = `<span style="color:red;">${state.error}</span>`;
     return;
   }
-  if (tokenCountsLoading) {
+  if (state.tokenCountsLoading) {
     tokenStatsBar.innerHTML = `<em>Counting tokens&nbsp;<span class="token-spinner"></span></em>`;
     return;
   }
@@ -456,7 +521,7 @@ function renderTokenStatsBar(error) {
   html += `<span title="Prompt">${promptTokenCount} (prompt)</span> + `;
   html += filesTokenCounts.map(
       f => `<span title="${f.filename}">${f.token_count} <code>${escapeHtml(f.filename)}</code></span>`
-  ).join(' + ');
+  ).join(' + ') || '0 (context)';
   html += chatHistoryTokenCount ? ` + <span title="Chat history">${chatHistoryTokenCount} (history)</span>` : '';
   html += ` = <strong>${totalTokenCount}</strong> / ${tokenLimit}`;
   if (totalTokenCount > tokenLimit) {
@@ -468,9 +533,9 @@ function renderTokenStatsBar(error) {
 /**
  * Enables or disables send button based on token count and loading status.
  */
-function updateSendButtonState() {
+function updateSendButtonState(state) {
   const sendBtn = chatForm.querySelector('button[type="submit"]');
-  sendBtn.disabled = tokenCountsLoading || totalTokenCount > tokenLimit;
+  sendBtn.disabled = state.tokenCountsLoading || state.totalTokenCount > state.tokenLimit;
   sendBtn.style.opacity = sendBtn.disabled ? 0.5 : 1;
 }
 
@@ -483,7 +548,7 @@ function showOverLimitModal() {
   modal.innerHTML = `
     <div class="token-modal-content">
       <h3>Token Limit Exceeded</h3>
-      <p>Your message and context exceed the maximum allowed tokens (${tokenLimit}).</p>
+      <p>Your message and context exceed the maximum allowed tokens (${appState.get().tokenLimit}).</p>
       <ul>
         <li>Remove one or more context files, or</li>
         <li>
@@ -526,7 +591,7 @@ async function sendWithHistoryTrim() {
 
   const formData = new FormData();
   formData.append('message', message);
-  selectedFiles.forEach(file => {
+  appState.get().selectedFiles.forEach(file => {
     if (file.type.startsWith('image/')) formData.append('images', file);
     else formData.append('context_files', file);
   });
@@ -554,10 +619,8 @@ async function sendWithHistoryTrim() {
     renderMessage('system', data.response, data.response);
   }
 
-  selectedFiles = [];
+  appState.set({ selectedFiles: [] });
   uploadFilesInput.value = '';
-  updateUploadList();
-  updateTokenCounts();
 }
 
 /**
@@ -568,11 +631,16 @@ async function sendWithHistoryTrim() {
  * Initializes the app state by updating counts & loading history.
  */
 function initializeAppState() {
-  updateTokenCounts();
+  setTokenGroupsCounts();
   loadChatHistory();
 }
 
 /**
  * Debounced version of updateTokenCounts for input/file changes.
  */
-const updateTokenCountsDebounced = debounce(updateTokenCounts, 250);
+const updateTokenCountDebounced = debounce(updateTokenCount, DEBOUNCE_DELAY);
+
+/**
+ * Debounced version of updateTokenGroup for input/file changes.
+ */
+const setTokenGroupCountsDebounced = debounce(setTokenGroupCounts, DEBOUNCE_DELAY);
