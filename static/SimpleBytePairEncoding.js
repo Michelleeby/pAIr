@@ -3,7 +3,7 @@
 class FrontendBPETokenizer {
     static _modelCache = null;
   
-    static async loadModel(url = '/static/frontend_tokenizer_model.json') {
+    static async loadModel(url = '/shared/tokenizer_merged_ranks.json') {
       if (FrontendBPETokenizer._modelCache) return FrontendBPETokenizer._modelCache;
       const resp = await fetch(url, { cache: 'force-cache' });
       if (!resp.ok) throw new Error("Failed to load tokenizer model");
