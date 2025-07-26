@@ -21,6 +21,7 @@ app = FastAPI()
 
 # Serve static files (frontend)
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/shared", StaticFiles(directory="shared"), name="shared")
 
 @app.get("/")
 async def root():
@@ -149,7 +150,8 @@ async def reset_session():
 @app.post("/token_count")
 async def get_token_count_endpoint(
     text: Optional[str] = Form(None),
-    files: Optional[List[UploadFile]] = File(None)
+    files: Optional[List[UploadFile]] = File(None),
+    history: Optional[List[str]] = Form(None)
 ):
     """Return token count for text and for each file."""
     result = {}
@@ -173,4 +175,12 @@ async def get_token_count_endpoint(
                     "error": str(e)
                 })
         result["files"] = file_counts
+    if history:
+        for idx, msg in enumerate(history):
+            if msg["role"] == "system" and idx == 0:
+                continue  # skip system prompt
+            if msg["role"] in ("user", "system"):
+                msg["tokens"] = len(tokenizer_count_service.tokenizer.encode(msg["content"]))
+                result["history"] = msg
+                result["history_tokens"] = msg["tokens"]
     return JSONResponse(result)
